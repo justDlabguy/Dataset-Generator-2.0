@@ -54,40 +54,50 @@ def parse_json_output(text):
         st.error(f"⚠️ Could not parse JSON: {e}")
         return None
 
-# === Generate Dataset ===
 if st.button("🚀 Generate Dataset"):
     if not user_prompt.strip():
         st.warning("Please enter a dataset description.")
     else:
-        batch_size = 100 if record_count > 100 else record_count
-        batches = (record_count + batch_size - 1) // batch_size
-        st.info(f"Generating {record_count} records in {batches} batch(es)...")
-
+        remaining = record_count
         all_data = []
+        batch_number = 1
 
-        for i in range(batches):
+        while remaining > 0:
+            batch_size = min(200, remaining)  # Limit batch to 200 records max
             batch_prompt = (
                 f"{user_prompt.strip()}\n"
-                f"Generate exactly {min(batch_size, record_count - len(all_data))} records in JSON array format. "
-                f"Each record must contain at least 2 fields, such as 'name' and 'value'. "
-                f"Output JSON only, no extra explanation."
+                f"Generate {batch_size} records in JSON array format. "
+                f"Each record must have at least 2 fields."
             )
-            raw_response = call_mistral_api(batch_prompt)
-            if raw_response:
-                parsed = parse_json_output(raw_response)
-                if parsed:
-                    all_data.extend(parsed)
-                    st.success(f"✅ Batch {i+1} done. Total: {len(all_data)} records.")
-                else:
-                    st.warning(f"⚠️ Batch {i+1} returned invalid JSON.")
-                    break
-            else:
-                st.warning(f"❗ Skipping Batch {i+1} due to timeout or connection error.")
-                break
 
+            st.info(f"🚧 Generating Batch {batch_number} - Requesting {batch_size} records...")
+
+            try:
+                raw_response = call_mistral_api(batch_prompt)
+                parsed = parse_json_output(raw_response)
+
+                if parsed:
+                    actual_count = len(parsed)
+                    all_data.extend(parsed)
+                    remaining -= actual_count
+
+                    st.success(f"✅ Batch {batch_number} done: Got {actual_count} records. "
+                               f"{remaining} remaining.")
+
+                    # If fewer records returned than requested, retry automatically.
+                    if actual_count < batch_size:
+                        st.warning(f"⚠️ Batch {batch_number} returned fewer records than requested, retrying...")
+                    else:
+                        batch_number += 1
+                else:
+                    st.warning(f"⚠️ Batch {batch_number} returned invalid JSON, retrying...")
+            except Exception as e:
+                st.error(f"🚫 API Error during Batch {batch_number}: {e}")
+
+        # ✅ Done: Show dataset
         if all_data:
             df = pd.DataFrame(all_data)
-            st.success(f"🎉 Generated {len(df)} records.")
+            st.success(f"🎉 Completed! Total Records: {len(df)}")
             st.dataframe(df.head(100))
             csv = df.to_csv(index=False).encode("utf-8")
             st.download_button("⬇️ Download CSV", csv, "dataset.csv", "text/csv")
