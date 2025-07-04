@@ -14,7 +14,7 @@ def retry_mistral_request(payload, headers, retries=3):
                 MISTRAL_ENDPOINT,
                 json=payload,
                 headers=headers,
-                timeout=20  # Timeout in seconds
+                timeout=60  # Timeout in seconds
             )
             response.raise_for_status()
             return response

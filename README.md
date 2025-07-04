@@ -8,7 +8,7 @@ Built with [Streamlit](https://streamlit.io), this app lets users describe the k
 
 ## 🚀 Live Demo
 
-👉 [Try the app](https://your-username-your-repo.streamlit.app/) ← *(Replace with your actual link)*
+👉 [Try the app](https://dataset-gen.streamlit.app/) 
 
 ---
 
@@ -33,7 +33,7 @@ Generate 200 fake hospital patients with name, age, diagnosis, and phone number.
 bash
 Copy
 Edit
-git clone https://github.com/your-username/ai-dataset-generator.git
+git clone https://github.com/justDlabguy/Dataset-Generator-2.0
 cd ai-dataset-generator
 pip install -r requirements.txt
 streamlit run app.py
