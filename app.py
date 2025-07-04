@@ -59,7 +59,7 @@ if st.button("🚀 Generate Dataset"):
     if not user_prompt.strip():
         st.warning("Please enter a dataset description.")
     else:
-        batch_size = 50 if record_count > 50 else record_count
+        batch_size = 100 if record_count > 100 else record_count
         batches = (record_count + batch_size - 1) // batch_size
         st.info(f"Generating {record_count} records in {batches} batch(es)...")
 
